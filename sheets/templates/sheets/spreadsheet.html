@@ -1,0 +1,148 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sheets Clone</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-bottom: 2px solid #ccc;
+        }
+        .toolbar button {
+            font-size: 14px;
+            padding: 4px 6px;
+        }
+        .spreadsheet-container {
+            overflow: auto;
+            height: 80vh;
+            border: 1px solid #ccc;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            min-width: 100px;
+            text-align: center;
+        }
+        th {
+            background: #f1f1f1;
+            position: sticky;
+            top: 0;
+        }
+        .row-header {
+            background: #f1f1f1;
+            font-weight: bold;
+            position: sticky;
+            left: 0;
+        }
+        .selected {
+            outline: 2px solid blue !important;
+        }
+    </style>
+</head>
+<body>
+
+
+   
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <button class="btn btn-outline-dark" onclick="formatText('bold')"><b>B</b></button>
+        <button class="btn btn-outline-dark" onclick="formatText('italic')"><i>I</i></button>
+        <button class="btn btn-outline-dark" onclick="formatText('underline')"><u>U</u></button>
+         <!-- Save & Load -->
+         <h2 contenteditable="true" id="sheet-name" class="editable-title">Untitled Sheet</h2>
+         <button class="btn btn-success" onclick="saveSpreadsheet()">💾 Save</button>
+         <button class="btn btn-primary" onclick="loadSpreadsheet()">Load</button>
+        
+        <!-- Font Size -->
+        <select id="fontSize" class="form-select w-auto" onchange="changeFontSize()">
+            <option value="10px">10</option>
+            <option value="12px">12</option>
+            <option value="14px">14</option>
+            <option value="16px" selected>16</option>
+            <option value="18px">18</option>
+            <option value="20px">20</option>
+            <option value="24px">24</option>
+        </select>
+        
+        <!-- Font Color -->
+        <button class="btn btn-outline-dark" onclick="document.getElementById('fontColor').click()">🎨 Font Color</button>
+        <input type="color" id="fontColor" class="d-none" onchange="changeFontColor()">
+
+        <!-- Data Quality Functions -->
+        <button class="btn btn-outline-dark" onclick="trimText()">✂️ TRIM</button>
+        <button class="btn btn-outline-dark" onclick="convertText('upper')">🔠 UPPER</button>
+        <button class="btn btn-outline-dark" onclick="convertText('lower')">🔡 LOWER</button>
+        <button class="btn btn-outline-dark" onclick="removeDuplicates()">🚮 REMOVE DUPLICATES</button>
+        <button class="btn btn-outline-dark" onclick="findAndReplace()">🔍 FIND & REPLACE</button>  
+         <!-- Additional Mathematical Functions -->
+         <button class="btn btn-outline-dark" onclick="calculate('ROUND')">🔢 ROUND</button>
+         <button class="btn btn-outline-dark" onclick="calculate('ABS')">➕ ABS</button>
+         <button class="btn btn-outline-dark" onclick="calculate('SQRT')">√ SQRT</button> 
+    </div>
+
+
+
+    <!-- Formula Bar -->
+    <input type="text" id="formula-bar" class="form-control my-2" placeholder="Enter formula (e.g., =SUM(A1:A3))" onkeypress="applyFormula(event)" onclick="restoreSelection()">
+
+    <!-- Spreadsheet -->
+    <div class="spreadsheet-container">
+        
+            <table class="table table-bordered" id="spreadsheet" data-sheet-id="{{ spreadsheet.id }}">
+            <thead>
+                <tr>
+                    <th></th>
+                    {% for label in col_labels %}
+                        <th>{{ label }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in rows %}
+                <tr>
+                    <th class="row-header">{{ i }}</th>
+                    {% for j in cols %}
+                        <td contenteditable="true" id="cell-{{ i }}-{{ j }}" onclick="selectCell('{{ i }}', '{{ j }}')" oninput="validateInput(this)"></td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+      <!-- Controls for Adding Rows and Columns -->
+      <div class="controls" data-sheet-id="{{ spreadsheet.id }}">
+        <button class="btn btn-primary" onclick="addRow()">+ Add Row</button>
+        <button class="btn btn-primary" onclick="addColumn()">+ Add Column</button>
+    </div>
+
+    <script src="{% static 'js/script.js' %}?v={{ timestamp }}"></script>
+        <!-- ✅ Store the sheet ID for JavaScript -->
+
+        <script>
+            let savedCells = JSON.parse("{{ saved_cells|escapejs }}");
+            var SHEET_ID = "{{ spreadsheet.id }}";  // ✅ Set as a global JS variable
+        </script>
+
+
+       
+    
+    
+
+</body>
+</html>

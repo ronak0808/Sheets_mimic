@@ -1,0 +1,110 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Google Sheets Clone</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            background: #f8f9fa;
+            font-family: Arial, sans-serif;
+        }
+        .navbar {
+            background: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .dashboard-container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .btn-logout {
+            background: #dc3545;
+            color: white;
+            transition: 0.3s;
+        }
+        .btn-logout:hover {
+            background: #c82333;
+        }
+    
+    </style>
+</head>
+<body>
+
+    <!-- ✅ Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">📚 SheetSync </a>
+            
+            <div class="d-flex">
+                {% if user.is_authenticated %}
+                <form id="logout-form" method="post" action="{% url 'logout' %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-logout">🚪 Logout</button>
+                </form>
+                
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-primary me-2">🔑 Login</a>
+                    <a href="{% url 'signup' %}" class="btn btn-success">📝 Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    
+
+    <!-- ✅ Dashboard Content -->
+    <div class="dashboard-container">
+        <h2>Welcome, {{ user.username }}! 👋</h2>
+
+        <a href="{% url 'create_spreadsheet' %}" class="btn btn-success mb-3">➕ Create New Spreadsheet</a>
+
+        <h3 class="mt-4">📄 My Spreadsheets</h3>
+        <ul class="list-group">
+            {% for sheet in spreadsheets %}
+                <li class="list-group-item">
+                    <span class="me-3">
+                    <a href="{% url 'spreadsheet' sheet.id %}" class="text-decoration-none fw-bold">
+                        {{ sheet.name }}
+                    </a> 
+                    </span>
+                    <span class="text-mute me-3"> - Created on {{ sheet.created_at|date:"d M Y" }}</span>
+                    <span class="me-3"> <button class="btn btn-danger btn-sm" onclick="deleteSpreadsheet({{ sheet.id }})">🗑️ Delete</button></span>
+                
+                </li>
+            {% empty %}
+                <p class="text-muted">No spreadsheets found. Create one!</p>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <script>
+        function getCSRFToken() {
+            return document.cookie.split('; ').find(row => row.startsWith('csrftoken')).split('=')[1];
+        }
+
+        function deleteSpreadsheet(sheetId) {
+            if (confirm("Are you sure you want to delete this spreadsheet? This action cannot be undone!")) {
+                fetch(`/sheets/delete/${sheetId}/`, {
+                    method: "DELETE",
+                    headers: {
+                        "X-CSRFToken": getCSRFToken(),
+                        "Content-Type": "application/json"
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert("🗑️ Spreadsheet deleted successfully!");
+                    location.reload(); // Refresh dashboard after deletion
+                })
+                .catch(error => console.error("❌ Error deleting spreadsheet:", error));
+            }
+        }
+    </script>
+
+</body>
+</html>
