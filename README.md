@@ -1,4 +1,4 @@
-# **Google Sheets Clone 📝🚀**
+# ** Sheets  📝🚀**
 
 A **web-based spreadsheet application** built using **Django, JavaScript, and Bootstrap**.  
 It allows users to create, edit, save, and manage spreadsheets, mimicking the core functionalities of Google Sheets.
